@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Perpustakaan Pribadi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style_login.css">
+</head>
+<body>
+
+<div class="login-box">
+    <h2><i class="fa-solid fa-book-open"></i> Login</h2>
+    
+    {% with messages = get_flashed_messages(category_filter=["error"]) %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/login" method="POST">
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" name="username" required autocomplete="off">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" name="password" required>
+        </div>
+        <label class="remember-group">
+            <input type="checkbox" name="remember"> Ingat Perangkat Ini
+        </label>
+        <button type="submit" class="btn-login">Masuk</button>
+    </form>
+</div>
+
+</body>
+</html>

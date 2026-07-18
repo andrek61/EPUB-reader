@@ -1,0 +1,227 @@
+:root {
+  --bg: #0b1020;
+  --card: #121a2f;
+  --soft: #1a2442;
+  --ring: #2e3a64;
+  --shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: white;
+}
+
+.btn-logout {
+    color: #ff4b4b;
+    font-size: 20px;
+    text-decoration: none;
+    transition: 0.2s;
+    padding: 8px;
+    border-radius: 50%;
+}
+.btn-logout:hover {
+    background: rgba(255, 75, 75, 0.1);
+}
+
+/* topbar */
+.topbar {
+  padding: 20px 30px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(18,26,47,.6);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+/* library */
+.library {
+  padding: 30px;
+}
+
+.library h2 {
+  margin-bottom: 24px;
+  font-size: 20px;
+}
+
+/* grid - DIUBAH MENJADI LEBIH BESAR */
+.book-grid {
+  display: grid;
+  /* Kolom akan minimal selebar 160px, maksimal mengikuti ruang yang ada */
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 24px 20px; /* Jarak atas-bawah 24px, kiri-kanan 20px */
+  justify-content: center;
+}
+
+/* card */
+.book-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: white;
+  width: 100%;
+  min-width: 0;
+  /* Hapus background, border-radius, dan shadow dari sini */
+}
+
+.book-card:hover .cover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 30px rgba(0,0,0,.6);
+}
+
+.book-card:hover .title {
+  color: #6a8cff; /* Efek teks menyala saat di-hover (opsional) */
+}
+
+/* cover - DIUBAH MENJADI LEBIH TINGGI */
+.cover {
+  width: 100%;
+  aspect-ratio: 2 / 3; /* Otomatis membuat tinggi proporsional seperti buku fisik! */
+  border-radius: 8px; /* Lengkungan halus seperti di gambar */
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: var(--soft);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* info */
+.book-info {
+  padding: 12px 4px 0 4px; /* Padding hanya di bagian atas (jarak dari cover) */
+}
+
+.title {
+  font-size: 15px;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: 600;
+  transition: color 0.2s;
+  /* Memotong teks yang terlalu panjang menjadi maksimal 2 baris (seperti di gambar) */
+  display: -webkit-box;
+  /* -webkit-line-clamp: 2; */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.author {
+  font-size: 13px;
+  opacity: .6;
+  margin-top: 4px;
+  margin-bottom: 0;
+  /* Memotong nama author jika terlalu panjang (pakai titik-titik) */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* FAB (Floating Action Button) Melayang */
+.fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #3b5cff;
+  color: white;
+  border: none;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(59, 92, 255, 0.4);
+  transition: transform 0.2s, background 0.2s;
+  z-index: 100;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  background: #4b6bff;
+}
+
+/* Global Dropzone Overlay */
+#global-dropzone {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(11, 16, 32, 0.85);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 4px dashed #6a8cff;
+  margin: 10px; /* Memberi jarak border dari tepi layar */
+  border-radius: 20px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* Penting: agar event dragover tidak terganggu */
+  transition: opacity 0.2s;
+}
+
+#global-dropzone.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.drop-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  color: #6a8cff;
+}
+
+.drop-text {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+
+
+@media (max-width: 720px){
+    .book-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 20px 16px;
+    }
+}
+
+/* @media (max-width: 580px){
+    .book-grid{
+        grid-template-columns: repeat(auto-fill, 200px);
+        gap: 20px;
+    }
+    .book-card{
+        width: 200px;
+        height: 280px;
+    }
+} */
+
+@media (max-width: 480px){
+    .book-grid {
+        /* Memaksa grid menjadi 2 kolom di HP sekecil apapun (seperti layout Play Books) */
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px 12px;
+    }
+    .title {
+        font-size: 14px; /* Judul sedikit dikecilkan di HP */
+    }
+    .author {
+        font-size: 12px;
+    }
+}

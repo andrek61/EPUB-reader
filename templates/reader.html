@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>{{ title_name }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+<link rel="stylesheet" href="/static/style_reader.css">
+
+</head>
+
+<body>
+
+<div id="reader-header" class="ui-overlay">
+    <div class="header-left">
+        <a href="/detail/{{ folder_name }}" class="icon-btn" title="Kembali"><i class="fa-solid fa-arrow-left"></i></a>
+        <button class="icon-btn" onclick="toggleSidebar()" title="Daftar Isi"><i class="fa-solid fa-bars"></i></button>
+    </div>
+    <div class="header-center">
+        <p class="book-title" id="book-title">Memuat buku...</p>
+        <p class="chapter-title" id="current-chapter">Memuat bab...</p>
+    </div>
+    <div class="header-right">
+        <button class="icon-btn" onclick="toggleTheme()" title="Ubah Tema"><i class="fa-solid fa-moon" id="theme-icon"></i></button>
+        <button class="icon-btn" onclick="addBookmark()" title="Tambah Bookmark"><i class="fa-regular fa-bookmark"></i></button>
+    </div>
+</div>
+
+<!-- <button class="ui-overlay nav-btn prev" onclick="prevPage()"><i class="fa-solid fa-chevron-left"></i></button>
+<button class="ui-overlay nav-btn next" onclick="nextPage()"><i class="fa-solid fa-chevron-right"></i></button> -->
+
+<div id="nav-controls" class="ui-overlay">
+    <button class="nav-btn" onclick="prevPage()">
+        <i class="fa-solid fa-chevron-left"></i> Prev
+    </button>
+    <button class="nav-btn" onclick="nextPage()">
+        Next <i class="fa-solid fa-chevron-right"></i>
+    </button>
+</div>
+
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h3 id="sidebar-title">Daftar Isi</h3>
+            
+            <div class="sidebar-actions" id="sidebar-actions">
+                <button class="icon-btn" onclick="toggleSearch()" title="Cari Bab"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button class="icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="sidebar-search-container" id="sidebar-search-container">
+                <input type="text" id="toc-search" placeholder="Cari bab...">
+                <button class="icon-btn" onclick="toggleSearch()" style="padding: 4px; font-size: 16px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        
+        <div id="toc-container"></div>
+    </div>
+</div>
+
+<div id="selection-menu" class="ui-overlay" style="display: none; position: fixed; z-index: 3000;">
+    <button onclick="openNoteModal()" style="background: var(--brand); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        <i class="fa-solid fa-highlighter"></i> Highlight & Catat
+    </button>
+</div>
+
+
+<div id="note-modal-overlay" class="ui-overlay" style="display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 4000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-ui); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; border: 1px solid var(--ring);">
+        <h3 style="margin-top:0; color: var(--text-ui);">Buat Catatan</h3>
+        <p id="selected-text-preview" style="font-style: italic; color: var(--brand); font-size: 14px; margin-bottom: 15px; border-left: 3px solid var(--brand); padding-left: 10px;"></p>
+        <textarea id="note-input" rows="4" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); color: var(--text-ui); border: 1px solid var(--ring); border-radius: 8px; padding: 10px; outline: none;"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button onclick="closeNoteModal()" style="background: transparent; border: 1px solid var(--ring); color: var(--text-ui); padding: 8px 16px; border-radius: 6px; cursor: pointer;">Batal</button>
+            <button onclick="saveHighlight()" style="background: var(--brand); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div id="view-note-overlay" class="ui-overlay" style="display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4); z-index: 4000; align-items: center; justify-content: center;" onclick="closeViewNote()">
+    <div style="background: var(--bg-ui); padding: 20px; border-radius: 12px; width: 80%; max-width: 350px; border: 1px solid var(--brand); box-shadow: 0 10px 30px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
+        
+        <!-- Judul Buku -->
+        <p id="view-book-title" style="font-size: 11px; color: #888; margin: 0 0 8px 0; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;"></p>
+        
+        <!-- Quote Teks Highlight -->
+        <p id="view-quote-text" style="font-size: 14px; color: var(--text-ui); margin: 0 0 15px 0; font-style: italic; border-left: 3px solid var(--brand); padding-left: 10px;"></p>
+
+        <!-- Catatan -->
+        <p style="font-size: 12px; color: var(--brand); margin: 0 0 5px 0; font-weight: bold;">CATATAN:</p>
+        <p id="view-note-content" style="margin: 0; color: var(--text-ui); font-size: 15px; line-height: 1.5;"></p>
+        
+        <!-- Tombol Edit -->
+        <div style="display: flex; justify-content: flex-end; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--ring);">
+            <button onclick="editNote()" style="background: transparent; border: 1px solid var(--brand); color: var(--brand); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s;">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<div id="viewport"></div>
+
+
+<script>
+
+    let currentNoteData = null; // Menyimpan data catatan yang sedang dibuka di modal
+
+    // ---------------------------------------------------------
+    // INISIALISASI EPUB.JS
+    // ---------------------------------------------------------
+    const bookUrl = "/static/extracted_books/{{ folder_name }}/{{ opf_path }}";
+    const book = ePub(bookUrl, { type: "opf" });
+
+    const rendition = book.renderTo("viewport", {
+        width: "100%",
+        height: "100%",
+        manager: "default", 
+        flow: "scrolled",
+
+        /* --- KUNCI PEMBUKA GEMBOK SANDBOX --- */
+        allowScriptedContent: true
+    });
+
+    // ---------------------------------------------------------
+    // TEMA (GELAP & TERANG) + INJEKSI CSS BRUTAL KE IFRAME
+    // ---------------------------------------------------------
+    
+    let currentTheme = localStorage.getItem("readerTheme") || "dark";
+    let isDarkMode = (currentTheme === "dark");
+
+    // 1. Fungsi khusus untuk menyuntikkan CSS langsung ke dalam Iframe buku
+    function applyThemeToIframe(contents, isDark) {
+        const doc = contents.document;
+        let styleEl = doc.getElementById("custom-theme-style");
+        
+        if (!styleEl) {
+            styleEl = doc.createElement("style");
+            styleEl.id = "custom-theme-style";
+            doc.head.appendChild(styleEl);
+        }
+
+        // Tembak langsung SEMUA tag pembentuk teks, SVG Highlight, DAN BORDER BLOCKQUOTE!
+        if (isDark) {
+            styleEl.innerHTML = `
+                body { background-color: #0b1020 !important; }
+                body, p, span, div, h1, h2, h3, h4, h5, h6, li, blockquote {
+                    color: #cdcdcd !important;
+                    background-color: transparent !important;
+                }
+                a { color: #6aa7ff !important; }
+                
+                /* Paksa border blockquote menjadi warna terang di mode gelap */
+                blockquote { border-color: rgba(255, 255, 255, 0.3) !important; }
+                blockquote.noBorder { border-color: transparent !important; }
+            `;
+        } else {
+            styleEl.innerHTML = `
+                body { background-color: #fdfdfd !important; }
+                body, p, span, div, h1, h2, h3, h4, h5, h6, li, blockquote {
+                    color: #121a2f !important;
+                    background-color: transparent !important;
+                }
+                a { color: #3b5cff !important; }
+                
+                /* Paksa border blockquote menjadi warna gelap di mode terang */
+                blockquote { border-color: rgba(0, 0, 0, 0.3) !important; }
+                blockquote.noBorder { border-color: transparent !important; }
+            `;
+        }
+    }
+    // 2. Fungsi utama untuk mengganti seluruh antarmuka
+    function applyTheme(isDark) {
+        const themeName = isDark ? "dark" : "light";
+        
+        // A. Ubah Iframe buku yang sedang tampil di layar saat ini
+        if (rendition.getContents().length > 0) {
+            rendition.getContents().forEach(contents => {
+                applyThemeToIframe(contents, isDark);
+            });
+        }
+        
+        // B. Terapkan ke latar belakang luar HTML
+        document.body.style.background = isDark ? "#000000" : "#fdfdfd";
+        
+        // C. Ubah warna antarmuka (Header & Sidebar) menggunakan CSS Variables
+        document.documentElement.style.setProperty("--bg-ui", isDark ? "rgba(18, 26, 47, 0.95)" : "rgba(255, 255, 255, 0.95)");
+        document.documentElement.style.setProperty("--text-ui", isDark ? "#cdcdcd" : "#121a2f");
+        
+        document.documentElement.style.setProperty("--hl-color", isDark ? "#ffda75" : "#ff3b3b");
+        // D. Ubah Ikon Matahari/Bulan
+        const themeIcon = document.getElementById("theme-icon");
+        if (themeIcon) {
+            themeIcon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        }
+
+        // E. Simpan ke memori
+        localStorage.setItem("readerTheme", themeName);
+    }
+
+    // 3. Pastikan tema disuntik ulang setiap kali pengguna pindah bab (karena Iframe akan di-reset)
+    rendition.hooks.content.register(function(contents) {
+        applyThemeToIframe(contents, isDarkMode);
+
+        // ==========================================================
+        // INJEKSI TOMBOL NAVIGASI KE BAWAH TEKS EPUB
+        // ==========================================================
+        const doc = contents.document;
+        const body = doc.body;
+
+        // Cegah duplikasi jika hook dipanggil 2 kali oleh browser
+        if (doc.getElementById("custom-chapter-nav")) return;
+
+        // Buat kontainer/bungkusan untuk tombol
+        const navContainer = doc.createElement("div");
+        navContainer.id = "custom-chapter-nav";
+        
+        // CSS untuk memberikan margin/padding tinggi sesuai permintaanmu
+        navContainer.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            margin-top: 150px;    /* Jarak kosong yang sangat jauh dari teks terakhir */
+            margin-bottom: 150px; /* Jarak kosong sebelum mentok ke layar bawah */
+            padding-top: 30px;
+            border-top: 1px solid rgba(128, 128, 128, 0.3); /* Garis batas tipis */
+        `;
+
+        // Buat Tombol Kiri (Sebelumnya)
+        const btnPrev = doc.createElement("button");
+        btnPrev.innerHTML = "&#8592; Bab Sebelumnya";
+        btnPrev.style.cssText = `
+            background: transparent; color: inherit; 
+            border: 1px solid rgba(128,128,128,0.5); 
+            padding: 12px 20px; border-radius: 8px; 
+            cursor: pointer; font-size: 15px; font-weight: bold;
+        `;
+        // Beri aksi klik
+        btnPrev.onclick = function() {
+            rendition.prev();
+        };
+
+        // Buat Tombol Kanan (Selanjutnya)
+        const btnNext = doc.createElement("button");
+        btnNext.innerHTML = "Bab Selanjutnya &#8594;";
+        btnNext.style.cssText = `
+            background: transparent; color: inherit; 
+            border: 1px solid rgba(128,128,128,0.5); 
+            padding: 12px 20px; border-radius: 8px; 
+            cursor: pointer; font-size: 15px; font-weight: bold;
+        `;
+        // Beri aksi klik
+        btnNext.onclick = function() {
+            rendition.next();
+        };
+
+        // Masukkan tombol ke kontainer, lalu masukkan kontainer ke bagian paling bawah isi buku
+        navContainer.appendChild(btnPrev);
+        navContainer.appendChild(btnNext);
+        body.appendChild(navContainer);
+    });
+
+    // 4. Terapkan saat web pertama kali dibuka
+    applyTheme(isDarkMode);
+
+    // 5. Fungsi klik tombol
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        applyTheme(isDarkMode);
+    }
+
+    // ---------------------------------------------------------
+    // MENGELOLA UI (MUNCUL / HILANG SAAT KLIK & SCROLL)
+    // ---------------------------------------------------------
+    let uiVisible = true;
+    const overlays = document.querySelectorAll('.ui-overlay');
+
+    function toggleUI() {
+        uiVisible = !uiVisible;
+        overlays.forEach(el => el.classList.toggle('active', uiVisible));
+    }
+
+    function hideUI() {
+        if (!uiVisible) return;
+        uiVisible = false;
+        overlays.forEach(el => el.classList.remove('active'));
+    }
+
+    // Tampilkan UI di awal, lalu sembunyikan setelah 3 detik
+    setTimeout(() => { overlays.forEach(el => el.classList.add('active')); }, 100);
+    setTimeout(hideUI, 3000);
+
+    // Menangkap klik dan scroll di DALAM iframe buku
+    rendition.hooks.content.register(function(contents) {
+        contents.window.addEventListener('click', (e) => {
+            // Jangan toggle UI jika user mengklik link (tag <a>)
+            if (e.target.tagName.toLowerCase() !== 'a') toggleUI();
+        });
+        contents.window.addEventListener('scroll', hideUI);
+    });
+
+// ---------------------------------------------------------
+    // METADATA & LOKASI SAAT INI
+    // ---------------------------------------------------------
+    book.loaded.metadata.then(meta => {
+        document.getElementById("book-title").innerText = meta.title || "Unknown Title";
+    });
+
+    let currentCfi = "";
+    rendition.on("relocated", function(location) {
+        currentCfi = location.start.cfi;
+        
+        const currentHref = location.start.href;
+        const currentIndex = location.start.index; // Ambil nomor urut halaman (spine) saat ini
+
+        // 1. Coba ambil data TOC untuk halaman saat ini
+        let navItem = book.navigation.get(currentHref);
+        let chapterTitle = "Membaca...";
+
+        if (navItem) {
+            // Jika ketemu langsung, gunakan dan bersihkan spasinya (.trim)
+            chapterTitle = navItem.label.trim();
+        } else {
+            // 2. JIKA TIDAK KETEMU (Kasus Synopsis.xhtml atau Translator's Notes)
+            // Kita lakukan "Pencarian Mundur" (Backwards Spine Traversal)
+            // Mengecek halaman-halaman sebelumnya sampai menemukan halaman yang terdaftar di TOC
+            for (let i = currentIndex - 1; i >= 0; i--) {
+                let prevItem = book.spine.spineItems[i];
+                if (prevItem && prevItem.href) {
+                    let prevNavItem = book.navigation.get(prevItem.href);
+                    if (prevNavItem) {
+                        // Ketemu! Gunakan judul dari halaman induk/sebelumnya
+                        chapterTitle = prevNavItem.label.trim();
+                        break;
+                    }
+                }
+            }
+        }
+
+        const chapterElement = document.getElementById("current-chapter");
+        chapterElement.innerText = chapterTitle;
+
+        // =========================================================
+        // LOGIKA DETEKSI TINGGI (IF HEIGHT > 100)
+        // =========================================================
+        chapterElement.style.lineHeight = "normal"; 
+        if (chapterElement.offsetHeight > 100) {
+            chapterElement.style.lineHeight = "0.3";
+        }
+        // =========================================================
+
+        // =========================================================
+        // FITUR AUTO-SAVE PROGRES MEMBACA KE MEMORI BROWSER
+        // =========================================================
+        const folderName = "{{ folder_name }}"; 
+        localStorage.setItem("last_read_" + folderName, currentCfi);
+        // =========================================================
+    });
+
+    // ---------------------------------------------------------
+    // MEMBUAT DAFTAR ISI DI SIDEBAR (REKURSIF)
+    // ---------------------------------------------------------
+    book.loaded.navigation.then(function(toc) {
+        const container = document.getElementById("toc-container");
+        if(!toc || toc.length === 0) { container.innerHTML = '<p>Daftar isi kosong.</p>'; return; }
+
+        function buildTOC(items, parentElement) {
+            items.forEach(chapter => {
+                const hasChildren = chapter.subitems && chapter.subitems.length > 0;
+                const wrapper = document.createElement("div");
+                wrapper.className = "toc-item-wrapper";
+
+                const a = document.createElement("a");
+                a.className = "toc-item " + (hasChildren ? "toc-folder" : "");
+                a.innerHTML = `<span>${chapter.label}</span> <span><i class="fa-solid ${hasChildren ? 'fa-chevron-right' : ''}"></i></span>`;
+
+                if (hasChildren) {
+                    const subContainer = document.createElement("div");
+                    subContainer.className = "toc-sub-container collapsed";
+                    a.onclick = (e) => {
+                        e.preventDefault();
+                        subContainer.classList.toggle("collapsed");
+                        a.querySelector("i").className = subContainer.classList.contains("collapsed") ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-down";
+                    };
+                    buildTOC(chapter.subitems, subContainer);
+                    wrapper.appendChild(a);
+                    wrapper.appendChild(subContainer);
+                } else {
+                    a.href = "#";
+                    a.onclick = (e) => {
+                        e.preventDefault();
+                        rendition.display(chapter.href);
+                        toggleSidebar(); // Tutup sidebar setelah diklik
+                    };
+                    wrapper.appendChild(a);
+                }
+                parentElement.appendChild(wrapper);
+            });
+        }
+        buildTOC(toc, container);
+    });
+
+    function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("active");
+        document.getElementById("sidebar-overlay").classList.toggle("active");
+    }
+
+    // ---------------------------------------------------------
+    // BUKA LOKASI DARI URL & NAVIGASI
+    // ---------------------------------------------------------
+    
+    // ---------------------------------------------------------
+    // BUKA BUKU & MUAT HIGHLIGHT DARI DATABASE
+    // ---------------------------------------------------------
+    const urlParams = new URLSearchParams(window.location.search);
+    // const startLocation = urlParams.get('cfi') || urlParams.get('href') || undefined;
+
+    const folderName = "{{ folder_name }}"; 
+
+    // 1. Cek apakah ada parameter ?cfi= dari klik Bookmark di halaman detail
+    const locationFromUrl = urlParams.get('cfi') || urlParams.get('href');
+    
+    // 2. Cek memori browser untuk progres terakhir buku ini
+    const locationFromMemory = localStorage.getItem("last_read_" + folderName);
+    const startLocation = locationFromUrl || locationFromMemory || undefined;
+    
+    rendition.display(startLocation).then(function() {
+        console.log("Buku berhasil dirender!");
+
+        // =================================================================
+        // AMBIL HIGHLIGHT DARI DATABASE & RENDER (RADAR PINTAR)
+        // =================================================================
+    fetch(`/get_highlights/{{ folder_name }}`)
+        .then(response => response.json())
+        .then(data => {
+        if (data.success && data.highlights) {
+            const wordsToSearch = [];
+            const exactCfis = new Set(); 
+            
+            data.highlights.forEach(hl => {
+                // Buat payload berupa JSON String agar semua data ikut ter-render
+                const payload = JSON.stringify({
+                    id: hl.id, // Opsional jika kamu butuh ID untuk update backend nanti
+                    book_title: hl.book_title || "Buku Terkait", // Pastikan backend mu mengirimkan book_title
+                    quote: hl.highlight_text,
+                    note: hl.note,
+                    cfi: hl.cfi_location
+                });
+
+                if (!hl.is_external) {
+                    exactCfis.add(hl.cfi_location); 
+                    rendition.annotations.underline(
+                        hl.cfi_location, 
+                        { payload: payload }, // Kirim sebagai payload
+                        (e) => { showNoteView(e.target.dataset.payload); },
+                        "custom-underline"
+                    );
+                }
+
+                const word = hl.highlight_text;
+                if (word && word.length > 2) {
+                    if (!wordsToSearch.some(item => item.word === word)) {
+                        // Tidak perlu lagi memakai teks [Radar Lintas Volume]
+                        wordsToSearch.push({ word: word, payload: payload });
+                    }
+                }
+            });
+
+            // 1. URUTKAN DARI KATA TERPANJANG KE TERPENDEK
+            // (Memastikan "without" diproses sebelum "with" atau "thou")
+            // 1. URUTKAN DARI KATA TERPANJANG KE TERPENDEK
+            wordsToSearch.sort((a, b) => b.word.length - a.word.length);
+
+            if (wordsToSearch.length > 0) {
+                (async function processChaptersSmartly() {
+                    
+                    // ==========================================
+                    // OPTIMASI SUPER CEPAT: CACHE CFI 
+                    // (Menghindari eksekusi Regex berulang-ulang)
+                    // ==========================================
+                    const parsedCfisCache = []; 
+
+                    function checkAndRegisterCfi(newCfi) {
+                        if (exactCfis.has(newCfi)) return false; // Jika identik, tolak.
+                        
+                        const match = newCfi.match(/epubcfi\((.*?):(\d+).*?:(\d+)\)/);
+                        if (!match) {
+                            exactCfis.add(newCfi); // Jika format aneh, terima saja tanpa cek irisan
+                            return true; 
+                        }
+                        
+                        const newBase = match[1];
+                        const newStart = parseInt(match[2], 10);
+                        const newEnd = parseInt(match[3], 10);
+
+                        // Cek tabrakan langsung dari memori cache angka (sangat ringan untuk CPU)
+                        for (let i = 0; i < parsedCfisCache.length; i++) {
+                            const ex = parsedCfisCache[i];
+                            if (ex.base === newBase) {
+                                if (newStart < ex.end && newEnd > ex.start) {
+                                    return false; // Tabrakan! Tolak.
+                                }
+                            }
+                        }
+                        
+                        // Jika aman, masukkan angka yang sudah di-parse ke cache agar tidak di-Regex ulang nanti
+                        parsedCfisCache.push({ base: newBase, start: newStart, end: newEnd });
+                        exactCfis.add(newCfi);
+                        return true; // Lolos dan boleh digambar
+                    }
+                    // ==========================================
+
+                    try {
+                        const spineItems = book.spine.spineItems;
+                        let currentIndex = 0;
+                        const currentLocation = rendition.currentLocation();
+                        if (currentLocation && currentLocation.start) {
+                            currentIndex = currentLocation.start.index;
+                        }
+                        
+                        const reorderedSpine = [...spineItems.slice(currentIndex), ...spineItems.slice(0, currentIndex)];
+                        
+                        for (let i = 0; i < reorderedSpine.length; i++) {
+                            let item = reorderedSpine[i];
+                            await item.load(book.load.bind(book));
+                            
+                            // ==========================================
+                            // BROWSER BREATHE (JEDA NAFAS)
+                            // Beri waktu browser istirahat 15 milidetik setiap selesai meload 1 bab.
+                            // Ini kunci utama agar tombol/pop-up bisa diklik lancar tanpa delay!
+                            // ==========================================
+                            await new Promise(resolve => setTimeout(resolve, 15));
+                            
+                            wordsToSearch.forEach(searchItem => {
+                                let results = item.find(searchItem.word);
+                                if (results && results.length > 0) {
+                                    results.forEach(result => {
+                                        
+                                        // Gunakan fungsi baru yang super ringan
+                                        if (checkAndRegisterCfi(result.cfi)) {
+                                            rendition.annotations.underline(
+                                                result.cfi, 
+                                                { payload: searchItem.payload }, 
+                                                (e) => { showNoteView(e.target.dataset.payload); },
+                                                "custom-underline"
+                                            );
+                                        }
+                                    });
+                                }
+                            });
+                            item.unload();
+                        }
+                    } catch (err) { console.error("Error radar pintar:", err); }
+                })();
+            }
+        }
+    })
+    .catch(err => console.error("Gagal memuat riwayat highlight:", err));
+    });
+
+    function nextPage() { rendition.next(); hideUI(); }
+    function prevPage() { rendition.prev(); hideUI(); }
+
+    document.addEventListener("keyup", function(e) {
+        if (e.key === "ArrowRight") nextPage();
+        if (e.key === "ArrowLeft") prevPage();
+    });
+
+    // ---------------------------------------------------------
+    // FITUR SIMPAN BOOKMARK KE DATABASE
+    // ---------------------------------------------------------
+    function addBookmark() {
+        const chapterTitle = document.getElementById("current-chapter").innerText;
+        // Kita ambil folder_name langsung dari template Flask yang me-render halaman ini
+        const folderName = "{{ folder_name }}"; 
+
+        // Cegah user klik tombol sebelum buku selesai dimuat
+        if (!currentCfi) {
+            alert("Tunggu sebentar, halaman belum termuat sepenuhnya.");
+            return;
+        }
+
+        // Ubah ikon sementara agar terlihat sedang "loading"
+        const btnIcon = document.querySelector("button[title='Tambah Bookmark'] i");
+        btnIcon.className = "fa-solid fa-spinner fa-spin";
+
+        // Kirim data ke Flask secara diam-diam (Background Fetch)
+        fetch('/add_bookmark', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                folder_name: folderName,
+                chapter_title: chapterTitle,
+                cfi_location: currentCfi
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Berhasil! Ubah ikon jadi solid bookmark
+                btnIcon.className = "fa-solid fa-bookmark";
+                alert("Penanda halaman berhasil disimpan!");
+            } else {
+                btnIcon.className = "fa-regular fa-bookmark";
+                alert("Gagal menyimpan: " + data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            btnIcon.className = "fa-regular fa-bookmark";
+            alert("Terjadi kesalahan jaringan.");
+        });
+    }
+
+    // ---------------------------------------------------------
+    // FUNGSI BUKA/TUTUP KOTAK PENCARIAN DI SIDEBAR
+    // ---------------------------------------------------------
+    function toggleSearch() {
+        const title = document.getElementById("sidebar-title");
+        const actions = document.getElementById("sidebar-actions");
+        const searchContainer = document.getElementById("sidebar-search-container");
+        const searchInput = document.getElementById("toc-search");
+
+        if (searchContainer.classList.contains("active")) {
+            // Jika terbuka -> Tutup dan kembalikan ke judul awal
+            searchContainer.classList.remove("active");
+            title.style.display = "block";
+            actions.style.display = "flex";
+            searchInput.value = ""; // Kosongkan teks
+            searchInput.dispatchEvent(new Event('input')); // Reset daftar isi
+        } else {
+            // Jika tertutup -> Buka kotak pencarian
+            title.style.display = "none";
+            actions.style.display = "none";
+            searchContainer.classList.add("active");
+            searchInput.focus(); // Langsung fokus agar bisa langsung mengetik
+        }
+    }
+
+    // ---------------------------------------------------------
+    // LOGIKA FILTER/SEARCH BAB (Mirip halaman detail)
+    // ---------------------------------------------------------
+    // Catatan: Pastikan ini diletakkan SETELAH logika epubBook.loaded.navigation.then(...) selesai dibuat
+    setTimeout(() => {
+        const searchInput = document.getElementById("toc-search");
+        
+        searchInput.addEventListener("input", function() {
+            const filterText = this.value.toLowerCase();
+            const container = document.getElementById("toc-container");
+            const allWrappers = container.querySelectorAll(".toc-item-wrapper");
+            const allFolders = container.querySelectorAll(".toc-sub-container");
+            const allIcons = container.querySelectorAll(".toc-folder i");
+
+            // Jika kosong, kembalikan seperti semula
+            if (filterText === "") {
+                allWrappers.forEach(el => el.style.display = "flex");
+                allFolders.forEach(el => el.classList.add("collapsed"));
+                allIcons.forEach(icon => icon.className = "fa-solid fa-chevron-right");
+                return;
+            }
+
+            // Sembunyikan semuanya
+            allWrappers.forEach(el => el.style.display = "none");
+
+            // Cari yang cocok
+            allWrappers.forEach(wrapper => {
+                const labelSpan = wrapper.querySelector(":scope > .toc-item span:first-child");
+                if (labelSpan && labelSpan.textContent.toLowerCase().includes(filterText)) {
+                    wrapper.style.display = "flex";
+                    
+                    // Buka folder induk secara paksa
+                    let parent = wrapper.parentElement;
+                    while (parent && parent.id !== "toc-container") {
+                        if (parent.classList.contains("toc-sub-container")) {
+                            parent.classList.remove("collapsed");
+                            parent.parentElement.style.display = "flex";
+                            const parentIcon = parent.parentElement.querySelector(":scope > .toc-folder i");
+                            if(parentIcon) parentIcon.className = "fa-solid fa-chevron-down";
+                        }
+                        parent = parent.parentElement;
+                    }
+                    
+                    // Tampilkan isi folder jika foldernya yang dicari
+                    const subContainer = wrapper.querySelector(":scope > .toc-sub-container");
+                    if (subContainer) {
+                        subContainer.classList.remove("collapsed");
+                        const icon = wrapper.querySelector("i");
+                        if(icon) icon.className = "fa-solid fa-chevron-down";
+                        subContainer.querySelectorAll(".toc-item-wrapper").forEach(child => child.style.display = "flex");
+                    }
+                }
+            });
+        });
+    }, 1500); // Delay sedikit untuk memastikan TOC sudah dirender epub.js
+
+    // ---------------------------------------------------------
+    // FITUR HIGHLIGHT & CATATAN (Global Auto-Highlight)
+    // ---------------------------------------------------------
+    
+    let currentSelection = { cfiRange: null, text: '' };
+    
+    // Array ini pura-puranya diambil dari database saat halaman dimuat
+    // Isinya adalah daftar kata/CFI yang sudah pernah di-highlight
+    let savedHighlights = []; 
+
+    const selectionMenu = document.getElementById("selection-menu");
+    
+    // 1. MENDETEKSI TEKS YANG DIBLOK (SELEKSI)
+    rendition.on("selected", function(cfiRange, contents) {
+        book.getRange(cfiRange).then(function (range) {
+            const text = range.toString().trim();
+            if (text.length === 0) return;
+
+            currentSelection.cfiRange = cfiRange;
+            currentSelection.text = text;
+
+            // Dapatkan kordinat teks dari dalam Iframe
+            const rect = range.getBoundingClientRect();
+            
+            // Hitung posisi agar pas di tengah atas teks
+            let menuLeft = rect.left + (rect.width / 2) - 75;
+            let menuTop = rect.top - 60;
+
+            // Pengaman: Jangan biarkan menu tembus ke luar layar atas atau kiri
+            menuLeft = Math.max(10, menuLeft);
+            menuTop = Math.max(90, menuTop);
+
+            // Tampilkan menu melayang
+            selectionMenu.style.display = "block";
+            selectionMenu.style.left = menuLeft + "px";
+            selectionMenu.style.top = menuTop + "px"; 
+        });
+    });
+
+    // Sembunyikan menu jika user mengklik sembarang tempat
+    rendition.hooks.content.register(function(contents) {
+        contents.window.addEventListener('click', () => {
+            selectionMenu.style.display = "none";
+        });
+    });
+
+    function showNoteView(dataString) {
+        if (!dataString) return;
+        
+        try {
+            // 1. Coba terjemahkan dataString dari JSON menjadi Objek JavaScript
+            const data = JSON.parse(dataString);
+            currentNoteData = data; // Simpan ke memori global
+            
+            document.getElementById("view-book-title").innerText = data.book_title || "Buku Saat Ini";
+            document.getElementById("view-quote-text").innerText = `"${data.quote}"`;
+            document.getElementById("view-note-content").innerText = data.note;
+            
+        } catch(e) {
+            // 2. JAGA-JAGA (FALLBACK): Jika yang diklik adalah highlight lama (bukan JSON)
+            document.getElementById("view-book-title").innerText = "Buku Saat Ini";
+            document.getElementById("view-quote-text").innerText = "";
+            document.getElementById("view-note-content").innerText = dataString;
+            
+            // Tetap simpan format sementara agar tidak error saat diedit
+            currentNoteData = { quote: "", note: dataString, cfi: currentCfi }; 
+        }
+        
+        document.getElementById("view-note-overlay").style.display = "flex";
+    }
+
+    // Tambahkan variabel global baru ini di atas fungsi-fungsi modal
+    let editingHighlightId = null; 
+
+    // 1. UPDATE: Reset ID saat membuat catatan BARU
+    function openNoteModal() {
+        selectionMenu.style.display = "none";
+        document.getElementById("selected-text-preview").innerText = `"${currentSelection.text}"`;
+        document.getElementById("note-input").value = "";
+        
+        editingHighlightId = null; // Pastikan ini kosong jika bikin baru!
+        
+        document.getElementById("note-modal-overlay").style.display = "flex";
+    }
+
+    // 2. UPDATE: Simpan ID saat tombol EDIT ditekan
+    function editNote() {
+        if (!currentNoteData || !currentNoteData.cfi) {
+            alert("Gagal mengedit: Data lokasi (CFI) tidak ditemukan.");
+            return;
+        }
+        
+        closeViewNote();
+        
+        currentSelection = {
+            cfiRange: currentNoteData.cfi, 
+            text: currentNoteData.quote
+        };
+        
+        editingHighlightId = currentNoteData.id; // SIMPAN ID ASLI HIGHLIGHT!
+        
+        document.getElementById("selected-text-preview").innerText = `"${currentNoteData.quote}"`;
+        document.getElementById("note-input").value = currentNoteData.note;
+        document.getElementById("note-modal-overlay").style.display = "flex";
+    }
+
+    // 3. UPDATE: Kirim ID ke backend saat SIMPAN ditekan
+    function saveHighlight() {
+        const noteText = document.getElementById("note-input").value;
+        const exactCfi = currentSelection.cfiRange;
+        const selectedWord = currentSelection.text;
+        const folderName = "{{ folder_name }}"; 
+
+        closeNoteModal();
+
+        // A. Kirim ke Database (Tetap sama)
+        fetch('/add_highlight', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                highlight_id: editingHighlightId, 
+                folder_name: folderName,
+                highlight_text: selectedWord,
+                note_text: noteText,
+                cfi_location: exactCfi
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) alert("Gagal menyimpan catatan.");
+        }).catch((error) => console.error('Error:', error));
+
+        // B. Format JSON untuk UI Instan
+        const payload = JSON.stringify({
+            id: editingHighlightId, 
+            book_title: editingHighlightId && currentNoteData ? currentNoteData.book_title : "{{ title_name }}",
+            quote: selectedWord,
+            note: noteText,
+            cfi: exactCfi
+        });
+
+        // --- TAMBAHKAN INI (HAPUS INGATAN LAMA) ---
+        // Jika sedang dalam mode edit (ada ID-nya), hapus dulu garis bawah lama di memori layar
+        if (editingHighlightId) {
+            rendition.annotations.remove(exactCfi, "underline");
+        }
+        // ------------------------------------------
+
+        // C. Gambar Garis Bawah Baru
+        rendition.annotations.underline(exactCfi, { note: payload }, (e) => {
+            showNoteView(e.target.dataset.note);
+        }, "custom-underline");
+
+        // --- TAMBAHKAN INI JUGA (BIAR OTOMATIS MUNCUL) ---
+        // Langsung tampilkan hasil edit secara otomatis agar tidak perlu klik teksnya lagi
+        showNoteView(payload);
+        // -------------------------------------------------
+
+        // D. Pencarian Global (Pintar: Mulai dari bab saat ini)
+        if (selectedWord.length > 2) { 
+            (async function processChaptersSmartly() {
+                try {
+                    const spineItems = book.spine.spineItems;
+                    let currentIndex = 0;
+                    
+                    // 1. Deteksi kita sedang berada di bab ke berapa sekarang
+                    const currentLocation = rendition.currentLocation();
+                    if (currentLocation && currentLocation.start) {
+                        currentIndex = currentLocation.start.index;
+                    }
+                    
+                    // 2. Susun ulang antrean: Bab saat ini -> sampai akhir -> berputar ke bab 1
+                    const reorderedSpine = [
+                        ...spineItems.slice(currentIndex), 
+                        ...spineItems.slice(0, currentIndex)
+                    ];
+                    
+                    for (let i = 0; i < reorderedSpine.length; i++) {
+                        let item = reorderedSpine[i];
+                        
+                        // Muat bab ke memori
+                        await item.load(book.load.bind(book));
+                        let results = item.find(selectedWord);
+                        
+                        // Langsung hapus dari memori agar tidak RAM bocor
+                        item.unload();
+                        
+                        if (results && results.length > 0) {
+                            results.forEach(result => {
+                                if (result.cfi !== exactCfi) {
+                                    // Hapus garis bawah lama jika sedang mode edit
+                                    if (editingHighlightId) {
+                                        rendition.annotations.remove(result.cfi, "underline");
+                                    }
+                                    // Gambar garis bawah dengan payload baru
+                                    rendition.annotations.underline(
+                                        result.cfi, 
+                                        { note: payload }, 
+                                        (e) => { showNoteView(e.target.dataset.note); },
+                                        "custom-underline"
+                                    );
+                                }
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error mencari kata secara global:", err);
+                }
+            })();
+        }
+
+        // Reset ID
+        editingHighlightId = null; 
+    }
+
+    function closeNoteModal() {
+        document.getElementById("note-modal-overlay").style.display = "none";
+        
+        // Hapus blok biru dari teks jika ada
+        if (rendition && rendition.getContents().length > 0) {
+            rendition.getContents()[0].window.getSelection().removeAllRanges();
+        }
+    }
+
+    // Fungsi untuk menutup pop-up View Catatan (Radar/Klik Garis Bawah)
+    function closeViewNote() {
+        document.getElementById("view-note-overlay").style.display = "none";
+    }
+</script>
+
+</body>
+</html>

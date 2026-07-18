@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Perpustakaan Ebook</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div id="global-dropzone">
+  <div class="drop-icon">⬇️</div>
+  <div class="drop-text">Jatuhkan File EPUB disini</div>
+</div>
+
+<header class="topbar">
+  <h1>📚 Perpustakaan EPUB</h1>
+</header>
+
+<section class="library">
+  <!-- <h2>Your Books</h2> -->
+  
+  <div class="book-grid">
+    {% for book in books %}
+    <a class="book-card" href="/detail/{{book[4]}}">
+      <div class="cover">
+        <img src="/buku_ekstrak/{{ book[4] }}/{{ book[6] }}" alt="cover">
+      </div>
+      <div class="book-info">
+        <h3 class="title">{{book[1]}}</h3>
+        <p class="author">{{book[2]}}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+  <input type="file" id="fileElem" name="file" accept=".epub" hidden>
+</form>
+
+<button class="fab" onclick="document.getElementById('fileElem').click()" title="Upload Book">
+  +
+</button>
+
+<script>
+  const overlay = document.getElementById("global-dropzone");
+  const fileInput = document.getElementById("fileElem");
+  const form = document.getElementById("uploadForm");
+
+  // Deteksi saat file ditarik ke dalam jendela browser
+  window.addEventListener("dragover", e => {
+    e.preventDefault();
+    overlay.classList.add("active");
+  });
+
+  // Deteksi saat file dibawa keluar dari jendela browser
+  window.addEventListener("dragleave", e => {
+    e.preventDefault();
+    // Memastikan overlay hanya hilang jika kursor benar-benar keluar dari layar
+    if (e.relatedTarget === null || e.relatedTarget.nodeName === "HTML") {
+      overlay.classList.remove("active");
+    }
+  });
+
+  // Deteksi saat file dilepas (di-drop) di mana saja di layar
+  window.addEventListener("drop", e => {
+    e.preventDefault();
+    overlay.classList.remove("active");
+    
+    // Pindahkan file yang di-drop ke dalam input file tersembunyi
+    if (e.dataTransfer.files.length > 0) {
+      fileInput.files = e.dataTransfer.files;
+      form.submit(); // Langsung submit otomatis
+    }
+  });
+
+  // Deteksi jika user memilih file via klik tombol FAB
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+      form.submit();
+    }
+  });
+</script>
+
+</body>
+</html>

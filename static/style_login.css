@@ -1,0 +1,12 @@
+:root { --bg: #0b1020; --card: #121a2f; --text: #e7eaf3; --brand: #3b5cff; --ring: rgba(255,255,255,0.1); }
+body { margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
+.login-box { background: var(--card); padding: 40px; border-radius: 16px; border: 1px solid var(--ring); width: 100%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.login-box h2 { margin: 0 0 20px 0; text-align: center; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; margin-bottom: 8px; font-size: 14px; color: rgba(255,255,255,0.7); }
+.input-group input[type="text"], .input-group input[type="password"] { width: 100%; padding: 12px; box-sizing: border-box; background: rgba(0,0,0,0.2); border: 1px solid var(--ring); border-radius: 8px; color: white; outline: none; transition: 0.2s; }
+.input-group input:focus { border-color: var(--brand); }
+.remember-group { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 20px; color: rgba(255,255,255,0.7); cursor: pointer; }
+.btn-login { width: 100%; padding: 12px; background: var(--brand); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.btn-login:hover { background: #2a46cc; }
+.alert { background: rgba(255, 75, 75, 0.1); color: #ff4b4b; padding: 10px; border-radius: 8px; border: 1px solid #ff4b4b; margin-bottom: 15px; font-size: 14px; text-align: center; }

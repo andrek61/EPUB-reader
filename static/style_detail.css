@@ -1,0 +1,361 @@
+/* --- DETAIL PAGE LAYOUT --- */
+.detail-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 40px;
+}
+
+/* --- SIDEBAR (KIRI) --- */
+.detail-sidebar {
+  /* Membuat sidebar tetap melayang saat halaman di-scroll */
+  position: sticky;
+  top: 100px; 
+  align-self: start;
+}
+
+.detail-cover {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  object-fit: cover;
+  background: var(--soft);
+  margin-bottom: 24px;
+}
+
+.btn-read-now {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  background: #3b5cff;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+  transition: 0.2s;
+  gap: 8px;
+  box-shadow: 0 10px 20px rgba(59, 92, 255, 0.3);
+}
+
+.btn-read-now:hover {
+  background: #4b6bff;
+  transform: translateY(-3px);
+}
+
+/* --- KONTEN UTAMA (KANAN) --- */
+.detail-header h1 {
+  font-size: 32px;
+  margin: 0 0 10px 0;
+  line-height: 1.2;
+}
+
+.author-name {
+  font-size: 18px;
+  color: var(--brand);
+  margin: 0 0 24px 0;
+}
+
+/* Metadata Box */
+.meta-box {
+  background: var(--card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.meta-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+
+  word-break: break-word;      /* Memaksa kata dipatahkan jika kepanjangan */
+  overflow-wrap: break-word;   /* Dukungan ekstra untuk browser modern */
+  white-space: normal;         /* Memastikan teks diizinkan turun ke baris bawah */
+}
+
+/* --- SECTIONS (BAB, BOOKMARK, CATATAN) --- */
+.section-title {
+  font-size: 20px;
+  border-bottom: 2px solid var(--soft);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Daftar Isi (TOC) */
+.toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.toc-item {
+  padding: 12px 16px;
+  background: var(--card);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  transition: 0.2s;
+  border: 1px solid transparent;
+  display: flex;
+  justify-content: space-between;
+}
+
+.toc-item:hover {
+  background: var(--soft);
+  border-color: var(--ring);
+  transform: translateX(5px);
+  color: var(--brand);
+}
+
+/* Card Bookmark & Highlight */
+.data-card {
+  background: var(--card);
+  border-left: 4px solid var(--brand);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.data-card.highlight {
+  border-left-color: #f5a623; /* Warna kuning/oranye untuk kutipan */
+}
+
+.data-quote {
+  font-style: italic;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.data-note {
+  background: rgba(0,0,0,0.2);
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #7df0d1;
+}
+
+.data-meta {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.data-link {
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: bold;
+}
+.data-link:hover { text-decoration: underline; }
+
+/* --- HEADER DAFTAR ISI & PENCARIAN --- */
+.toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--soft);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.toc-header .section-title {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 15px;
+}
+
+.toc-search-box {
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--ring);
+  border-radius: 999px;
+  padding: 8px 16px;
+  gap: 8px;
+}
+
+.toc-search-box input {
+  border: none;
+  background: transparent;
+  color: white;
+  font-weight: 500;
+  outline: none;
+  width: 180px;
+}
+
+.toc-search-box input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+/* --- KONTINER DAFTAR ISI (BATAS TINGGI & SCROLL) --- */
+.toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 40px;
+  /* Batasi Tinggi Kontainer */
+  max-height: 450px; 
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Custom Scrollbar Tema Gelap */
+.toc-list::-webkit-scrollbar { width: 8px; }
+.toc-list::-webkit-scrollbar-track { background: var(--bg); border-radius: 10px; }
+.toc-list::-webkit-scrollbar-thumb { background: var(--ring); border-radius: 10px; }
+.toc-list::-webkit-scrollbar-thumb:hover { background: var(--brand); }
+
+/* --- STYLE FOLDER (BISA DI-EXPAND) --- */
+.toc-item-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.toc-folder {
+  cursor: pointer;
+  user-select: none;
+}
+
+.toc-sub-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 12px;
+  border-left: 2px solid var(--ring);
+  padding-left: 12px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* Class pembantu untuk menyembunyikan isi folder */
+.collapsed {
+  display: none !important;
+}
+
+.btn-delete-book {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 12px; border-radius: 8px;
+  background: transparent; color: #ff4b4b;
+  border: 1px solid #ff4b4b;
+  text-decoration: none; font-weight: bold; font-size: 15px;
+  margin-top: 12px; cursor: pointer; transition: 0.2s; gap: 8px;
+}
+.btn-delete-book:hover { background: #ff4b4b; color: white; }
+
+.btn-delete-item {
+  background: transparent; border: none; color: rgba(255,255,255,0.4);
+  cursor: pointer; transition: 0.2s; font-size: 14px;
+}
+.btn-delete-item:hover { color: #ff4b4b; }
+
+/* Mengatur meta-data agar tombol hapus rapi di sebelah kanan */
+.data-meta-actions {
+  display: flex; gap: 15px; align-items: center;
+}
+
+.btn-edit-item {
+  background: transparent; border: none; color: rgba(255,255,255,0.4);
+  cursor: pointer; transition: 0.2s; font-size: 14px;
+}
+.btn-edit-item:hover { color: var(--brand); /* Warna biru menyala */ }
+
+/* Styling Scrollbar khusus untuk kotak checklist relasi */
+#relation-checkbox-list::-webkit-scrollbar {
+    width: 8px; /* Lebar scrollbar vertikal */
+}
+
+#relation-checkbox-list::-webkit-scrollbar-track {
+    background: transparent; /* Jalur scrollbar dibuat transparan agar menyatu dengan background */
+    border-radius: 8px;
+}
+
+#relation-checkbox-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.4); /* Warna agak kehitaman (transparan 40%) */
+    border-radius: 8px; /* Membuat ujung scrollbar membulat */
+}
+
+#relation-checkbox-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.6); /* Sedikit lebih gelap saat mouse diarahkan (hover) */
+}
+
+/* Mengunci ukuran checkbox di dalam pop-up radar */
+#relation-checkbox-list input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important; /* INI KUNCI UTAMANYA: Mencegah kotak mengecil */
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Memastikan wadah baris (label) rapi */
+#relation-checkbox-list label {
+    display: flex;
+    align-items: flex-start; /* Agar sejajar di atas jika teksnya turun ke baris baru */
+    gap: 12px; /* Jarak antara kotak dan teks */
+    cursor: pointer;
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+  .detail-container {
+    grid-template-columns: 1fr; /* Jadi 1 kolom */
+    gap: 24px;
+  }
+  
+  .detail-sidebar {
+    position: static; /* Matikan efek melayang di HP */
+    max-width: 250px; /* Batasi lebar cover di HP */
+    margin: 0 auto;   /* Ketengahkan */
+    text-align: center;
+  }
+
+  #btn-atur-radar {
+    margin-left: auto; /* Mendorong tombol menyapu sisa ruang kosong ke kanan */
+  }
+}
+
+@media (max-width: 1000px){
+  #btn-atur-radar {
+    margin-left: auto; /* Mendorong tombol menyapu sisa ruang kosong ke kanan */
+  }
+}
+
+@media (max-width: 480px) {
+  .toc-search-box input{
+    width: 100px;
+  }
+  #btn-atur-radar {
+    margin-left: auto; /* Mendorong tombol menyapu sisa ruang kosong ke kanan */
+  }
+}

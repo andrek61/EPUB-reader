@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ book.title }} - Detail</title>
+
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style_detail.css">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+</head>
+
+<body>
+
+<header class="topbar">
+  <a href="/" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+    <i class="fa-solid fa-arrow-left"></i> 
+    <h1>Kembali</h1>
+  </a>
+</header>
+
+<main class="detail-container">
+  
+  <aside class="detail-sidebar">
+    <img src="/buku_ekstrak/{{ book.folder_name }}/{{ book.cover_path }}" 
+         alt="Cover" class="detail-cover"
+         onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450/1a2442/e7eaf3?text=No+Cover';">
+    
+    <a href="/read/{{ book.folder_name }}" class="btn-read-now">
+      <i class="fa-solid fa-book-open"></i> Mulai Membaca
+    </a>
+
+    <button onclick="softDeleteBook('{{ book.id | default(book[0]) }}')" class="btn-delete-book">
+      <i class="fa-solid fa-trash"></i> Hapus Buku
+    </button>
+  </aside>
+
+  <section class="detail-content">
+    
+    <div class="detail-header">
+      <h1>{{ book.title }}</h1>
+      <p class="author-name">{{ book.author }}</p>
+    </div>
+
+    <div class="meta-box">
+      <div class="meta-item">
+        <span class="meta-label">Nama File Asli</span>
+        <span class="meta-value">{{ book.file_name }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Bahasa</span>
+        <span class="meta-value">{{ book.language }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Folder Sistem</span>
+        <span class="meta-value">{{ book.folder_name }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Terakhir Dibaca</span>
+        <span class="meta-value">
+          {% if book.last_read %} {{ book.last_read }} {% else %} Fitur belum tersedia {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="data-card" style="border-left-color: #f5a623; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h3 style="margin: 0 0 5px 0;"><i class="fa-solid fa-satellite-dish"></i> Radar Lintas Volume</h3>
+            <p style="margin: 0; font-size: 13px; color: var(--muted);">Hubungkan kutipan & catatan dari buku/volume sebelumnya secara otomatis.</p>
+        </div>
+        <button id="btn-atur-radar" onclick="openRelationModal()" style="background: var(--brand); border: none; color: white; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            <i class="fa-solid fa-gears"></i> Atur Radar
+        </button>
+    </div>
+
+    <div class="toc-header">
+      <h2 class="section-title"><i class="fa-solid fa-list"></i> Daftar Isi</h2>
+      <div class="toc-search-box">
+        <input type="text" id="toc-search" placeholder="Cari bab/volume...">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--muted);"></i>
+      </div>
+    </div>
+    
+    <div id="toc-container" class="toc-list">
+      <span style="color: var(--muted);">Memuat bab buku...</span>
+    </div>
+
+    <!-- <div id="toc-container" class="toc-list">
+      <span style="color: var(--muted);">Memuat bab buku...</span>
+    </div> -->
+    <h2 class="section-title"><i class="fa-solid fa-bookmark"></i> Penanda Halaman</h2>
+    {% if bookmarks %}
+      {% for bm in bookmarks %}
+        <div class="data-card">
+          <h4 style="margin: 0 0 10px 0;">{{ bm.chapter_title }}</h4>
+          <div class="data-meta">
+            <span>{{ bm.created_at }}</span>
+            <div class="data-meta-actions">
+              <button onclick="softDeleteBookmark('{{ bm.id | default(bm[0]) }}')" class="btn-delete-item" title="Hapus Penanda">
+                  <i class="fa-solid fa-trash"></i>
+              </button>
+              <a href="/read/{{ book.folder_name }}?cfi={{ bm.cfi_location }}" class="data-link">Lanjutkan Membaca ➔</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--muted);">Belum ada penanda halaman.</p>
+    {% endif %}
+
+    <h2 class="section-title"><i class="fa-solid fa-highlighter"></i> Kutipan & Catatan</h2>
+    {% if highlights %}
+      {% for hl in highlights %}
+        <div class="data-card highlight">
+          <p class="data-quote">"{{ hl.quote_text }}"</p>
+          {% if hl.note_text %}
+            <div class="data-note"><i class="fa-solid fa-pen"></i> {{ hl.note_text }}</div>
+          {% endif %}
+          <div class="data-meta">
+            <span>{{ hl.created_at | default(hl[5]) }}</span>
+            
+            <div class="data-meta-actions">
+              
+              <div style="display:none;" id="note-text-{{ hl.id | default(hl[0]) }}">{{ hl.note_text | default(hl[4]) }}</div>
+              
+              <button onclick="openEditNoteModal('{{ hl.id | default(hl[0]) }}')" class="btn-edit-item" title="Edit Catatan">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              
+              <button onclick="softDeleteHighlight('{{ hl.id | default(hl[0]) }}')" class="btn-delete-item" title="Hapus Catatan">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+              <!-- <a href="/read/{{ book[4] }}?cfi={{ hl.cfi_location | default(hl[2]) }}" class="data-link">Menuju Lokasi ➔</a> -->
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--muted); margin-bottom: 40px;">Belum ada catatan.</p>
+    {% endif %}
+
+
+  </section>
+</main>
+
+<script>
+  // ---------------------------------------------------------
+  // SCRIPT MENGAMBIL DAFTAR ISI (VERSI FOLDER EXPAND & SEARCH)
+  // ---------------------------------------------------------
+  
+  const bookUrl = "/static/extracted_books/{{ book.folder_name }}/{{ book.opf_path }}";
+  const epubBook = ePub(bookUrl, { type: "opf" });
+
+  epubBook.loaded.navigation.then(function(toc) {
+      const container = document.getElementById("toc-container");
+      container.innerHTML = ""; 
+      
+      if(!toc || toc.length === 0) {
+          container.innerHTML = '<span style="color: var(--muted);">Buku ini tidak memiliki struktur Daftar Isi bawaan.</span>';
+          return;
+      }
+
+      // Fungsi Rekursif Membangun Folder & Link
+      function buildTOC(items, parentElement) {
+          items.forEach(function(chapter) {
+              const hasChildren = chapter.subitems && chapter.subitems.length > 0;
+              
+              // Bungkus setiap baris agar anak-anaknya bisa dimasukkan ke dalam bungkusan yang sama
+              const itemWrapper = document.createElement("div");
+              itemWrapper.className = "toc-item-wrapper";
+
+              const a = document.createElement("a");
+              a.className = "toc-item " + (hasChildren ? "toc-folder" : "toc-link");
+              
+              const spanLabel = document.createElement("span");
+              spanLabel.textContent = chapter.label;
+              spanLabel.className = "toc-label"; // Class ini untuk fitur Search
+              
+              const spanIcon = document.createElement("span");
+              
+              // JIKA PUNYA ANAK (FOLDER / ANTHOLOGY)
+              if (hasChildren) {
+                  // Ikon panah ke kanan (karena defaultnya tertutup)
+                  spanIcon.innerHTML = '<i class="fa-solid fa-chevron-right" style="color: var(--brand);"></i>';
+                  a.style.background = "rgba(255,255,255,0.03)"; // Beri sedikit warna beda untuk folder
+                  
+                  // Container untuk anak-anaknya (Default ditutup / collapsed)
+                  const subContainer = document.createElement("div");
+                  subContainer.className = "toc-sub-container collapsed";
+                  
+                  // Aksi ketika folder diklik (Buka/Tutup)
+                  a.onclick = function(e) {
+                      e.preventDefault();
+                      const icon = spanIcon.querySelector("i");
+                      if (subContainer.classList.contains("collapsed")) {
+                          subContainer.classList.remove("collapsed");
+                          icon.className = "fa-solid fa-chevron-down"; // Ikon panah turun
+                      } else {
+                          subContainer.classList.add("collapsed");
+                          icon.className = "fa-solid fa-chevron-right"; // Ikon panah kanan
+                      }
+                  };
+
+                  buildTOC(chapter.subitems, subContainer);
+                  
+                  a.appendChild(spanLabel);
+                  a.appendChild(spanIcon);
+                  itemWrapper.appendChild(a);
+                  itemWrapper.appendChild(subContainer);
+              } 
+              // JIKA BAB BIASA (LINK)
+              else {
+                  spanIcon.innerHTML = '<i class="fa-solid fa-arrow-right" style="opacity:0.3; font-size: 0.8em;"></i>';
+                  a.href = "/read/{{ book.folder_name }}?href=" + encodeURIComponent(chapter.href);
+                  
+                  a.appendChild(spanLabel);
+                  a.appendChild(spanIcon);
+                  itemWrapper.appendChild(a);
+              }
+
+              parentElement.appendChild(itemWrapper);
+          });
+      }
+
+      // Jalankan fungsi
+      buildTOC(toc, container);
+
+      // ---------------------------------------------------------
+      // FITUR PENCARIAN (SEARCH / FILTER) BAB
+      // ---------------------------------------------------------
+      const searchInput = document.getElementById("toc-search");
+      
+      searchInput.addEventListener("input", function() {
+          const filterText = this.value.toLowerCase();
+          const allWrappers = container.querySelectorAll(".toc-item-wrapper");
+          const allFolders = container.querySelectorAll(".toc-sub-container");
+          const allIcons = container.querySelectorAll(".toc-folder i");
+
+          // Jika kotak pencarian kosong, kembalikan seperti semula
+          if (filterText === "") {
+              allWrappers.forEach(el => el.style.display = "flex");
+              allFolders.forEach(el => el.classList.add("collapsed"));
+              allIcons.forEach(icon => icon.className = "fa-solid fa-chevron-right");
+              return;
+          }
+
+          // Sembunyikan semuanya terlebih dahulu
+          allWrappers.forEach(el => el.style.display = "none");
+
+          // Cari yang cocok
+          allWrappers.forEach(wrapper => {
+              // Ambil teks label dari baris ini saja (mengabaikan teks anak-anaknya)
+              const label = wrapper.querySelector(":scope > .toc-item > .toc-label");
+              
+              if (label && label.textContent.toLowerCase().includes(filterText)) {
+                  // Tampilkan baris yang cocok
+                  wrapper.style.display = "flex";
+                  
+                  // Trik Cerdas: Buka paksa folder induknya agar bab yang dicari terlihat
+                  let parent = wrapper.parentElement;
+                  while (parent && parent.id !== "toc-container") {
+                      if (parent.classList.contains("toc-sub-container")) {
+                          parent.classList.remove("collapsed"); // Buka folder
+                          parent.parentElement.style.display = "flex"; // Tampilkan folder induk
+                          
+                          // Ubah ikon induk jadi panah ke bawah
+                          const parentIcon = parent.parentElement.querySelector(":scope > .toc-folder > span > i");
+                          if(parentIcon) parentIcon.className = "fa-solid fa-chevron-down";
+                      }
+                      parent = parent.parentElement;
+                  }
+                  
+                  // Jika yang dicari adalah nama foldernya, tampilkan juga seluruh isi di dalamnya
+                  const subContainer = wrapper.querySelector(":scope > .toc-sub-container");
+                  if (subContainer) {
+                      subContainer.classList.remove("collapsed");
+                      wrapper.querySelector("i").className = "fa-solid fa-chevron-down";
+                      // Tampilkan anak-anaknya
+                      subContainer.querySelectorAll(".toc-item-wrapper").forEach(child => child.style.display = "flex");
+                  }
+              }
+          });
+      });
+
+  }).catch(function(error) {
+      document.getElementById("toc-container").innerHTML = '<span style="color: var(--danger);">Gagal memuat daftar isi.</span>';
+      console.error("Error loading TOC:", error);
+  });
+
+  // --- SCRIPT UNTUK FITUR SOFT DELETE ---
+
+function softDeleteBook(bookId) {
+    // 1. PENGAMAN: Cek apakah ID-nya kosong
+    if (!bookId || bookId === "undefined" || bookId === "") {
+        alert("Error sistem: ID Buku tidak terbaca oleh HTML!");
+        return; 
+    }
+
+    if (confirm("Apakah kamu yakin ingin menghapus buku ini?")) {
+        fetch(`/delete_book/${bookId}`, { method: 'POST' })
+        .then(response => {
+            // 2. PENGAMAN: Cek apakah responnya error HTML
+            if (!response.ok) {
+                throw new Error("Gagal terhubung ke server (Error " + response.status + ")");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data.success) {
+                window.location.href = "/";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Terjadi kesalahan: " + err.message);
+        });
+    }
+}
+
+  function softDeleteBookmark(bookmarkId) {
+      if (confirm("Hapus penanda halaman ini?")) {
+          fetch(`/delete_bookmark/${bookmarkId}`, { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+              if(data.success) {
+                  // Refresh halaman agar card bookmark langsung hilang
+                  window.location.reload();
+              }
+          });
+      }
+  }
+
+  function softDeleteHighlight(highlightId) {
+      if (confirm("Hapus kutipan/catatan ini?")) {
+          fetch(`/delete_highlight/${highlightId}`, { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+              if(data.success) {
+                  window.location.reload();
+              }
+          });
+      }
+  }
+
+// --- SCRIPT UNTUK FITUR EDIT CATATAN HIGHLIGHT ---
+
+function openEditNoteModal(highlightId) {
+    // Ambil isi teks catatan asli dari div yang disembunyikan
+    const currentNoteText = document.getElementById('note-text-' + highlightId).innerText;
+    
+    // Masukkan data ke dalam Modal Pop-up
+    document.getElementById('edit-note-id').value = highlightId;
+    document.getElementById('edit-note-input').value = currentNoteText;
+    
+    // Tampilkan Modal
+    document.getElementById('edit-note-modal').style.display = 'flex';
+}
+
+function closeEditNoteModal() {
+    document.getElementById('edit-note-modal').style.display = 'none';
+}
+
+function saveEditedNote() {
+    const highlightId = document.getElementById('edit-note-id').value;
+    const newNoteText = document.getElementById('edit-note-input').value;
+
+    // Kirim data baru ke database via Flask
+    fetch(`/edit_highlight/${highlightId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ new_note: newNoteText })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Refresh halaman agar teks catatan langsung berubah
+            window.location.reload();
+        } else {
+            alert("Gagal mengedit: " + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Terjadi kesalahan jaringan.");
+    });
+}
+
+const CURRENT_BOOK_ID = "{{ book.id | default(book[0]) }}";
+
+function openRelationModal() {
+    document.getElementById('relation-modal').style.display = 'flex';
+    const listContainer = document.getElementById('relation-checkbox-list');
+    listContainer.innerHTML = '<span style="color: var(--muted);">Memuat daftar buku...</span>';
+
+    fetch(`/api/books_for_relation/${CURRENT_BOOK_ID}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            listContainer.innerHTML = "";
+            if (data.books.length === 0) {
+                listContainer.innerHTML = '<span style="color: var(--muted);">Belum ada buku lain di perpustakaan.</span>';
+                return;
+            }
+            data.books.forEach(buku => {
+                const isChecked = buku.is_checked ? "checked" : "";
+                listContainer.innerHTML += `
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; color: white; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px;">
+                        <input type="checkbox" class="rel-checkbox" value="${buku.id}" ${isChecked} style="width: 18px; height: 18px; cursor: pointer;">
+                        <span style="font-size: 15px;">${buku.title}</span>
+                    </label>
+                `;
+            });
+        }
+    });
+}
+
+function closeRelationModal() { document.getElementById('relation-modal').style.display = 'none'; }
+
+function saveRelations() {
+    const selectedIds = Array.from(document.querySelectorAll('.rel-checkbox:checked')).map(cb => parseInt(cb.value));
+    fetch(`/api/save_relations/${CURRENT_BOOK_ID}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ related_ids: selectedIds })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) { alert(data.message); closeRelationModal(); }
+        else { alert("Gagal: " + data.message); }
+    });
+}
+</script>
+
+<div id="edit-note-modal" class="ui-overlay" style="display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 4000; align-items: center; justify-content: center;">
+    <div style="background: var(--card); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; border: 1px solid var(--ring);">
+        <h3 style="margin-top:0; color: white;">Edit Catatan</h3>
+        
+        <input type="hidden" id="edit-note-id">
+        
+        <textarea id="edit-note-input" rows="4" style="width: 100%; box-sizing: border-box; background: var(--bg); color: white; border: 1px solid var(--ring); border-radius: 8px; padding: 10px; outline: none;"></textarea>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button onclick="closeEditNoteModal()" style="background: transparent; border: 1px solid var(--ring); color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Batal</button>
+            <button onclick="saveEditedNote()" style="background: var(--brand); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
+<div id="relation-modal" class="ui-overlay" style="display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); z-index: 4000; align-items: center; justify-content: center;">
+    <div style="background: var(--card); padding: 24px; border-radius: 12px; width: 90%; max-width: 450px; border: 1px solid var(--ring); display: flex; flex-direction: column; max-height: 80vh;">
+        <h3 style="margin-top:0; color: white;">Pilih Volume Sebelumnya</h3>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Centang buku yang ingin diintip. Highlight dari buku tersebut akan ikut dicari saat kamu membaca buku ini.</p>
+        
+        <div id="relation-checkbox-list" style="flex: 1; overflow-y: auto; background: var(--bg); border-radius: 8px; padding: 15px; border: 1px solid var(--ring); display: flex; flex-direction: column; gap: 12px;">
+            </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button onclick="closeRelationModal()" style="background: transparent; border: 1px solid var(--ring); color: white; padding: 10px 16px; border-radius: 6px; cursor: pointer;">Batal</button>
+            <button onclick="saveRelations()" style="background: var(--brand); border: none; color: white; padding: 10px 16px; border-radius: 6px; cursor: pointer;">Simpan</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

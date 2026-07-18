@@ -1,0 +1,5 @@
+# Abaikan file database
+database.db
+
+# Abaikan folder cache bawaan Python
+__pycache__/
