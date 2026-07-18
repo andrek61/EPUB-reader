@@ -1,6 +1,6 @@
 # 📖 Smart EPUB Reader & Annotation System
 
-![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.10-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-Web%20Framework-lightgrey.svg)
 ![SQLite](https://img.shields.io/badge/SQLite-Database-green.svg)
 ![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-DOM_Manipulation-yellow.svg)
@@ -8,7 +8,7 @@
 
 A web-based EPUB reader focusing on an advanced, dynamic annotation and highlighting system. Built with Python (Flask) and SQLite, this application goes beyond simple reading by turning your ebooks into interconnected study materials.
 
-**🌐 Live Demo:** [Try the application here!](https://namakamu.pythonanywhere.com)  
+**🌐 Live Demo:** [Try the application here!](https://andrek61.pythonanywhere.com)  
 
 **Demo Credentials:**
 * **Username:** `demo`
