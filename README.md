@@ -8,7 +8,7 @@
 
 A web-based EPUB reader focusing on an advanced, dynamic annotation and highlighting system. Built with Python (Flask) and SQLite, this application goes beyond simple reading by turning your ebooks into interconnected study materials.
 
-> **Note:** This application is designed as a personal library. Logging in with the demo account will grant you full access to view, upload, and interact with the globally shared EPUB collection and its smart annotations.
+> **Note:** This application is designed as a personal library.
 
 ## ✨ Core Feature: Global Smart Highlighting
 
