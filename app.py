@@ -322,7 +322,7 @@ def add_bookmark():
         if not book:
             return jsonify({"success": False, "message": "Buku tidak ditemukan"}), 404
 
-        # Menyesuaikan jika kamu pakai DictCursor atau Cursor biasa
+        # Menyesuaikan jika pakai DictCursor atau Cursor biasa
         book_id = book['id'] if isinstance(book, dict) else book[0]
 
         # 2. Simpan bookmark ke database
@@ -481,8 +481,8 @@ def get_highlights(folder_name):
         result = []
         for hl in highlights:
             result.append({
-                "id": hl['id'],                           # Tambahkan ID
-                "book_title": hl['book_title'],           # Tambahkan Judul Buku
+                "id": hl['id'],
+                "book_title": hl['book_title'],
                 "cfi_location": hl['cfi_location'],
                 "note": hl['note_text'] if hl['note_text'] else "",
                 "highlight_text": hl['quote_text'],

@@ -323,15 +323,13 @@
             // Jika ketemu langsung, gunakan dan bersihkan spasinya (.trim)
             chapterTitle = navItem.label.trim();
         } else {
-            // 2. JIKA TIDAK KETEMU (Kasus Synopsis.xhtml atau Translator's Notes)
-            // Kita lakukan "Pencarian Mundur" (Backwards Spine Traversal)
-            // Mengecek halaman-halaman sebelumnya sampai menemukan halaman yang terdaftar di TOC
+            // 2. JIKA TIDAK KETEMU
             for (let i = currentIndex - 1; i >= 0; i--) {
                 let prevItem = book.spine.spineItems[i];
                 if (prevItem && prevItem.href) {
                     let prevNavItem = book.navigation.get(prevItem.href);
                     if (prevNavItem) {
-                        // Ketemu! Gunakan judul dari halaman induk/sebelumnya
+                        // Gunakan judul dari halaman induk/sebelumnya
                         chapterTitle = prevNavItem.label.trim();
                         break;
                     }
@@ -442,8 +440,8 @@
             data.highlights.forEach(hl => {
                 // Buat payload berupa JSON String agar semua data ikut ter-render
                 const payload = JSON.stringify({
-                    id: hl.id, // Opsional jika kamu butuh ID untuk update backend nanti
-                    book_title: hl.book_title || "Buku Terkait", // Pastikan backend mu mengirimkan book_title
+                    id: hl.id, // Opsional jika butuh ID untuk update backend nanti
+                    book_title: hl.book_title || "Buku Terkait", // Pastikan backend mengirimkan book_title
                     quote: hl.highlight_text,
                     note: hl.note,
                     cfi: hl.cfi_location
@@ -529,7 +527,6 @@
                             // ==========================================
                             // BROWSER BREATHE (JEDA NAFAS)
                             // Beri waktu browser istirahat 15 milidetik setiap selesai meload 1 bab.
-                            // Ini kunci utama agar tombol/pop-up bisa diklik lancar tanpa delay!
                             // ==========================================
                             await new Promise(resolve => setTimeout(resolve, 15));
                             
@@ -573,7 +570,7 @@
     // ---------------------------------------------------------
     function addBookmark() {
         const chapterTitle = document.getElementById("current-chapter").innerText;
-        // Kita ambil folder_name langsung dari template Flask yang me-render halaman ini
+        // Ambil folder_name langsung dari template Flask yang me-render halaman ini
         const folderName = "{{ folder_name }}"; 
 
         // Cegah user klik tombol sebelum buku selesai dimuat
@@ -768,7 +765,7 @@
         document.getElementById("view-note-overlay").style.display = "flex";
     }
 
-    // Tambahkan variabel global baru ini di atas fungsi-fungsi modal
+    // variabel global untuk edit
     let editingHighlightId = null; 
 
     // 1. UPDATE: Reset ID saat membuat catatan BARU
@@ -838,7 +835,7 @@
             cfi: exactCfi
         });
 
-        // --- TAMBAHKAN INI (HAPUS INGATAN LAMA) ---
+        // ---(HAPUS INGATAN LAMA) ---
         // Jika sedang dalam mode edit (ada ID-nya), hapus dulu garis bawah lama di memori layar
         if (editingHighlightId) {
             rendition.annotations.remove(exactCfi, "underline");
@@ -850,7 +847,7 @@
             showNoteView(e.target.dataset.note);
         }, "custom-underline");
 
-        // --- TAMBAHKAN INI JUGA (BIAR OTOMATIS MUNCUL) ---
+        // --- (BIAR OTOMATIS MUNCUL) ---
         // Langsung tampilkan hasil edit secara otomatis agar tidak perlu klik teksnya lagi
         showNoteView(payload);
         // -------------------------------------------------
